@@ -1,0 +1,5 @@
+- upload audio file
+- apply sound effects
+- extract data
+- replay data file in controlled manner
+- visualize in waveform and sine wave
