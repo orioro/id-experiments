@@ -10,7 +10,8 @@ import {
 	AUDIOS_LOAD_AUDIO_FAILURE,
 	AUDIOS_PLAY_AUDIO,
 	AUDIOS_PAUSE_AUDIO,
-	AUDIOS_STOP_AUDIO
+	AUDIOS_STOP_AUDIO,
+	AUDIOS_SET_AUDIO_PLAYBACK_START_OFFSET
 } from '../../constants'
 
 import {
@@ -22,6 +23,16 @@ import {
 	applyAudioDefaults
 } from './model'
 
+export const setAudioPlaybackStartOffset = (audioId, playbackStartOffset) => {
+	return {
+		type: AUDIOS_SET_AUDIO_PLAYBACK_START_OFFSET,
+		payload: {
+			audioId,
+			playbackStartOffset
+		}
+	}
+}
+
 export const playAudio = audioId => (dispatch, getState) => {
 	const audio = getState().audios.byId[audioId]
 	if (!audio) {
@@ -32,7 +43,7 @@ export const playAudio = audioId => (dispatch, getState) => {
 	const time = Tone.context.now()
 	audio.player.start(
 		time,
-		audio.pauseOffset || 0
+		audio.playbackStartOffset || 0
 	)
 	dispatch({
 		type: AUDIOS_PLAY_AUDIO,

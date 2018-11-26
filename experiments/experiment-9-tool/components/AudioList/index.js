@@ -11,7 +11,8 @@ const AudioList = ({
 	audios,
 	onPlayAudio,
 	onPauseAudio,
-	onStopAudio
+	onStopAudio,
+	onChangePauseOffset
 }) => {
 	return <ul className='audio-list'>
 		{audios.map(audio => {
@@ -23,8 +24,9 @@ const AudioList = ({
 					onPlay={onPlayAudio.bind(null, audio.id)}
 					onPause={onPauseAudio.bind(null, audio.id)}
 					onStop={onStopAudio.bind(null, audio.id)}
+					onChangePauseOffset={onChangePauseOffset.bind(null, audio.id)}
 					duration={audio.duration}
-					pauseOffset={audio.pauseOffset}/>
+					playbackStartOffset={audio.playbackStartOffset}/>
 			</li>
 		})}
 	</ul>
@@ -34,7 +36,8 @@ AudioList.propTypes = {
 	audios: PropTypes.array.isRequired,
 	onPlayAudio: PropTypes.func.isRequired,
 	onPauseAudio: PropTypes.func.isRequired,
-	onStopAudio: PropTypes.func.isRequired
+	onStopAudio: PropTypes.func.isRequired,
+	onChangePauseOffset: PropTypes.func.isRequired,
 }
 
 export default AudioList

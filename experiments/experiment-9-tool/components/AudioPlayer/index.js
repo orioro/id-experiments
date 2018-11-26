@@ -1,15 +1,21 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import raf from 'raf'
 
 import PlayArrowIcon from 'mdi-react/PlayArrowIcon'
 import PauseIcon from 'mdi-react/PauseIcon'
 import StopIcon from 'mdi-react/StopIcon'
+
+import TrackInput from '../TrackInput'
+
+const noop = () => {}
 
 class AudioPlayer extends React.Component {
 	constructor(props) {
 		super(props)
 
 		this.state = {
+			playbackStatusBeforePause: null,
 			timeElapsedSinceLastPlay: 0,
 		}
 
@@ -24,18 +30,23 @@ class AudioPlayer extends React.Component {
 	_startCountingTimeElapsed() {
 		this._started = Date.now()
 
-		this._interval = setInterval(() => {
+		const tick = () => {
 			this.setState({
 				timeElapsedSinceLastPlay: (Date.now() - this._started) / 1000
 			})
-		}, 60)
+
+			if (this.props.playbackStatus === 'playing') {
+				this._interval = raf(tick)
+			}
+		}
+
+		this._interval = raf(tick)
 	}
 
 	_stopCountingTimeElapsed() {
 		this._started = null
 
-		clearInterval(this._interval)
-		this._interval = null
+		raf.cancel(this._interval)
 		this.setState({
 			timeElapsedSinceLastPlay: 0
 		})
@@ -47,6 +58,9 @@ class AudioPlayer extends React.Component {
 	}
 
 	pause() {
+		this.setState({
+			playbackStatusBeforePause: this.props.playbackStatus
+		})
 		this.props.onPause()
 		this._stopCountingTimeElapsed()
 	}
@@ -58,13 +72,14 @@ class AudioPlayer extends React.Component {
 
 	computeTimeElapsed() {
 		const {
-			pauseOffset,
+			duration,
+			playbackStartOffset,
 			playbackStatus
 		} = this.props
 
-		return playbackStatus === 'playing' ?
-			pauseOffset + this.state.timeElapsedSinceLastPlay :
-			pauseOffset
+		return playbackStatus === 'playing' && duration > 0 ?
+			(playbackStartOffset + this.state.timeElapsedSinceLastPlay) % duration :
+			playbackStartOffset
 	}
 
 	componentWillUnmount() {
@@ -78,7 +93,8 @@ class AudioPlayer extends React.Component {
 			label,
 			playbackStatus,
 			duration,
-			pauseOffset
+			playbackStartOffset,
+			onChangePauseOffset
 		} = this.props
 
 		return <div>
@@ -105,7 +121,30 @@ class AudioPlayer extends React.Component {
 					backgroundSize: `${((this.computeTimeElapsed() / duration) * 100).toFixed(2)}% 100%`
 				}}>
 				{label}
+				<div style={{ width: '100px', overflow: 'hidden'}}>{this.computeTimeElapsed()}</div>
 			</div>
+
+			<TrackInput
+				controls={[
+					{
+						name: 'timeElapsed',
+						value: this.computeTimeElapsed() / duration,
+						onDragStart: () => {
+							this.pause()
+						},
+						onDragStop: () => {
+							if (this.state.playbackStatusBeforePause === 'playing') {
+								this.play()
+							}
+						},
+						onDrag: value => {
+							return onChangePauseOffset(value * duration)
+						},
+					}
+				]}
+				onDragStart={noop}
+				onDrag={noop}
+				onDragStop={noop} />
 		</div>		
 	}
 }
@@ -116,8 +155,9 @@ AudioPlayer.propTypes = {
 	onPlay: PropTypes.func.isRequired,
 	onPause: PropTypes.func.isRequired,
 	onStop: PropTypes.func.isRequired,
+	onChangePauseOffset: PropTypes.func.isRequired,
 	duration: PropTypes.number.isRequired,
-	pauseOffset: PropTypes.number.isRequired
+	playbackStartOffset: PropTypes.number.isRequired,
 }
 
 export default AudioPlayer

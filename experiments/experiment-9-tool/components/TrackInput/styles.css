@@ -1,0 +1,37 @@
+.track-input {
+	padding-left: 20px;
+	padding-right: 20px;
+
+	box-sizing: border-box;
+
+	height: 30px;
+	width: 100%;
+}
+
+.track-input > .track-input__track {
+	height: 50%;
+	background-color: darkred;
+
+	position: relative;
+}
+
+.track-input > .track-input__track > .track-input__track__control {
+	width: 1px;
+	height: 100%;
+	background-color: cyan;
+
+	position: relative;
+}
+
+.track-input > .track-input__track > .track-input__track__control::before {
+	content: '';
+	position: absolute;
+
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+
+	height: 100%;
+	width: 20px;
+	background-color: red;
+}

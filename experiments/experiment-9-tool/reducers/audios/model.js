@@ -4,7 +4,7 @@ export const applyAudioDefaults = audio => {
 		playbackStatus: 'stopped',
 		duration: 0,
 		startedAt: null,
-		pauseOffset: 0,
+		playbackStartOffset: 0,
 		...audio,
 	}
 }

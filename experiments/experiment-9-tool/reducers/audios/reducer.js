@@ -15,7 +15,8 @@ import {
 	AUDIOS_LOAD_AUDIO_FAILURE,
 	AUDIOS_PLAY_AUDIO,
 	AUDIOS_PAUSE_AUDIO,
-	AUDIOS_STOP_AUDIO
+	AUDIOS_STOP_AUDIO,
+	AUDIOS_SET_AUDIO_PLAYBACK_START_OFFSET
 } from '../../constants'
 
 const audio = (state, action) => {
@@ -38,24 +39,29 @@ const audio = (state, action) => {
 				error: action.payload.error
 			}
 		case AUDIOS_PLAY_AUDIO:
-			return {
+			return state.playbackStatus !== 'playing' ? {
 				...state,
 				playbackStatus: 'playing',
 				startedAt: action.payload.time,
-			}
+			} : state
 		case AUDIOS_PAUSE_AUDIO:
-			return {
+			return state.playbackStatus === 'playing' ? {
 				...state,
 				playbackStatus: 'paused',
 				startedAt: null,
-				pauseOffset: (state.pauseOffset || 0) + action.payload.time - state.startedAt
-			}
+				playbackStartOffset: ((state.playbackStartOffset || 0) + action.payload.time - state.startedAt) % state.duration
+			} : state
 		case AUDIOS_STOP_AUDIO:
 			return {
 				...state,
 				playbackStatus: 'stopped',
 				startedAt: null,
-				pauseOffset: 0,
+				playbackStartOffset: 0,
+			}
+		case AUDIOS_SET_AUDIO_PLAYBACK_START_OFFSET:
+			return {
+				...state,
+				playbackStartOffset: action.payload.playbackStartOffset
 			}
 		default:
 			return state
@@ -77,6 +83,7 @@ const byId = (state = {}, action) => {
 		case AUDIOS_PLAY_AUDIO:
 		case AUDIOS_PAUSE_AUDIO:
 		case AUDIOS_STOP_AUDIO:
+		case AUDIOS_SET_AUDIO_PLAYBACK_START_OFFSET:
 			return objUpdateKey(state, action.payload.audioId, aud => {
 				return audio(aud, action)
 			})
